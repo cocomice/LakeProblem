@@ -22,8 +22,8 @@ using namespace std ;
 #define delta 0.98
 
 #define precis  3
-#define samples 100   // no. of samples for calculating objectives 
-#define inertia_thres  (-0.02)   // decision ineratia threshold 
+#define samples 100   	// no. of samples for calculating objectives 
+#define inertia_thres  (-0.02)   // decision inertia threshold 
 
 int nvars   ; // no. of decision variables 
 int nobjs   ; // no. of objectives 
@@ -35,7 +35,8 @@ vector<vector<double> > nat_pol_flow(10000, vector<double>(no_years)) ; // stoch
 
 // Problem definition
 void Stoch_Lake_Problem(double * vars, double * objs, double * consts) 
-{			 
+{
+	// opt 1 - get randomized index of sample-to-use 
     vector<int> linetouse(samples);
 	srand (time(NULL)); //gives a random seed based on run-time, using determined value for random seed analysis
 	for (int i=0; i<samples; i++) {
@@ -43,31 +44,38 @@ void Stoch_Lake_Problem(double * vars, double * objs, double * consts)
 	    //choose 100 of 10,000 available inflow value lines
 	    linetouse.at(i) = rand() % 10000;
   	}
-
+	
+	// opt 2 - initialize the indicators for calculating final objectives
   	int inertia_ctr         = 0   ; // counter for decision inertia ; accumulating over all samples 
-  	double acc_benefit      = 0.0 ;
-  	double acc_reliability  = 0.0 ;
-  	double acc_prob_inertia = 0.0 ;
-  	vector<double> acc_lake_state(no_years, 0.0) ;
-
+  	double acc_benefit      = 0.0 ; // accumulated benefit over all samples 
+  	double acc_reliability  = 0.0 ; // accumulated reliability over all samples 
+  	double acc_prob_inertia = 0.0 ; // accumulated probability of maintaining inertia over all samples 
+  	vector<double> acc_lake_state(no_years, 0.0) ; // time-series of lake state accumulated over all samples 
+	
+	// opt 3 - simulation over all samples 
 	for (int sample = 0; sample < samples; sample++){      
-      vector<double> nat_flow(no_years, 0.0) ;
-      int index = linetouse.at(sample);
-	  double benefit = 0; 
+      vector<double> nat_flow(no_years, 0.0) ; // initialize natural flow 
+      
+	  int index = linetouse.at(sample);	  
+	  double benefit = 0; // initialize step indicator for benefit 
 
       vector<double> pol_flow(no_years, 0.0)     ;  // pol_flow = authr_pol_flow + nat_pol_flow ; 	
       vector<double> change_dec(no_years-1, 0.0) ;
-      for (int i=0; i<no_years; i++){
-      	nat_flow.at(i) = nat_pol_flow[index][i]	  ; // draw one sample from natual polluted flow samples 
+      	  
+	  for (int i=0; i<no_years; i++){
+      	nat_flow.at(i) = nat_pol_flow[index][i]	  ; // draw one sample from natural polluted flow samples 
       	pol_flow.at(i) = vars[i] + nat_flow.at(i) ;
 		pol_flow.at(i) = round( pol_flow.at(i)*pow(10,(double)precis) )
-						/(pow(10,(double)precis)); //round the value to defiend precision
+						/(pow(10,(double)precis)); //round the value to defined precision
 
-      	if( i>0 ) {
+      	if( i>0 ) { // calculate decision change 
       		change_dec.at(i-1) = vars[i] - vars[i-1] ;      
       		change_dec.at(i-1) = round( change_dec.at(i-1)*pow(10,(double)precis) ) 
-								/(pow(10,(double)precis)) ;	//round the value to defiend precision
+								/(pow(10,(double)precis)) ;	//round the value to defined precision
       	}
+		
+		// benefit is independent on the lake state, and thus can be calculated 
+		// a priori to the lake simulation 
 		double dum_var = vars[i] ;
       	dum_var 	= round( dum_var*pow(10,(double)precis) )/pow(10,(double)precis); 
       	benefit 	= alpha*dum_var ;
@@ -76,26 +84,28 @@ void Stoch_Lake_Problem(double * vars, double * objs, double * consts)
       
 	  Lake Yu_Lake(param_b, param_Xo) ;  // create "lake" instance with defined parameters 
 
-	  Yu_Lake.Lake_Setup(pol_flow) ;
+	  Yu_Lake.Lake_Setup(pol_flow) ; 
 	  Yu_Lake.Lake_Sim(no_years)   ;	  
 	  Yu_Lake.Util_Cal() ;
 
       for (int i=0; i<no_years-1; i++){
   		if (change_dec.at(i) > inertia_thres) inertia_ctr++ ;  		
 	  } 
-	  acc_prob_inertia = acc_prob_inertia + double(inertia_ctr) / double(no_years-1) ;
-	  acc_reliability  = acc_reliability + Yu_Lake.reliability ;   	  	  
-	  Yu_Lake.Lake_Prober(acc_lake_state) ;
+	  acc_prob_inertia = acc_prob_inertia + double(inertia_ctr) / double(no_years-1) ; // cumulate inertia
+	  acc_reliability  = acc_reliability + Yu_Lake.reliability ; // cumulate the reliability  	  	  
+	  Yu_Lake.Lake_Prober(acc_lake_state) ; // cumulate current lake state vector
 	}
 
-	double dum_max_ele = *max_element(acc_lake_state.begin(), acc_lake_state.end()) ;
+	double dum_max_ele = *max_element(acc_lake_state.begin(), acc_lake_state.end()) ; // get maximum P value
 	
-	objs[0] =  dum_max_ele/samples   ;
-	objs[1] = -acc_benefit/samples   ;
-	objs[2] = -acc_prob_inertia 	 ;
-	objs[3] = -acc_reliability/samples ;	
+	// compute the final objectives 
+	objs[0] =  dum_max_ele/samples   ;    // minimize the maximum Phosphorous concentration 
+	objs[1] = -acc_benefit/samples   ;    // maximize the gain from pollution loads
+	objs[2] = -acc_prob_inertia/samples ; // maximize the probability of maintaining inertia
+	objs[3] = -acc_reliability/samples  ; // maximize the reliability
 }
 
+// Function for reading input data 
 void Read_Nat_Flow(string filename, vector<vector<double> > & output )
 {
   FILE * myfile ;
