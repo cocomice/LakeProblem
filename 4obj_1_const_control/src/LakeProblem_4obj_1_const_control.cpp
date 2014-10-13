@@ -22,7 +22,7 @@ using namespace std ;
 #define delta 0.98
 
 #define precis  3
-#define samples 1   // no. of samples for calculating objectives 
+#define samples 100   // no. of samples for calculating objectives 
 #define inertia_thres  (-0.02)   // decision ineratia threshold 
 
 int nvars   ; // no. of decision variables 
