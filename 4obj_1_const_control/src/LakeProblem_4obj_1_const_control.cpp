@@ -23,7 +23,8 @@ using namespace std ;
 
 #define precis  3
 #define samples 100   	// no. of samples for calculating objectives 
-#define inertia_thres  (-0.02)   // decision inertia threshold 
+#define inertia_thres  (-0.02)  // decision inertia threshold 
+#define reliab_thres 	0.85    // reliability threshold 
 
 int nvars   ; // no. of decision variables 
 int nobjs   ; // no. of objectives 
@@ -96,6 +97,12 @@ void Stoch_Lake_Problem(double * vars, double * objs, double * consts)
 	  Yu_Lake.Lake_Prober(acc_lake_state) ; // cumulate current lake state vector
 	}
 
+    if ( (acc_reliability/samples) > reliab_thres ){
+     consts[0]= 0.0;
+    }else{
+     consts[0] = reliab_thres - (acc_reliability/samples);
+    }
+  
 	double dum_max_ele = *max_element(acc_lake_state.begin(), acc_lake_state.end()) ; // get maximum P value
 	
 	// compute the final objectives 

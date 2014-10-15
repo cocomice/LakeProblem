@@ -12,7 +12,7 @@
 #include <vector>
 
 #define pcrit 		 	0.5
-#define reliab_thres 	0.85   // realiability threshold 
+#define reliab_thres 	0.85   // reliability threshold 
 
 using namespace std; 
 

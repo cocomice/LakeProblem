@@ -92,7 +92,7 @@ void Lake:: Lake_Prober(vector<double> & output)
   const int no_ele = lake_state.size() ;
   
   if (output.size()!=no_ele){
-    cout << "arguement of 'Lake_Prober' must be " << no_ele << endl ;
+    cout << "argument of 'Lake_Prober' must be " << no_ele << endl ;
   }
 
   for (int i = 0; i < no_ele; ++i)
