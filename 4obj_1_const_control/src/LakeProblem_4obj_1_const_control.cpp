@@ -14,7 +14,7 @@
 #include <algorithm>
 
 #include "./LakeModel.h"
-#include "../borg.h"
+#include "../../../borg.h"
 
 using namespace std ;
 
@@ -24,7 +24,7 @@ using namespace std ;
 #define precis  3
 #define samples 100   	// no. of samples for calculating objectives 
 #define inertia_thres  (-0.02)  // decision inertia threshold 
-#define reliab_thres 	0.85    // reliability threshold 
+#define reliab_thres 	 0.85   // reliability threshold 
 
 int nvars   ; // no. of decision variables 
 int nobjs   ; // no. of objectives 
@@ -46,15 +46,15 @@ void Stoch_Lake_Problem(double * vars, double * objs, double * consts)
 	    linetouse.at(i) = rand() % 10000;
   	}
 	
-	// opt 2 - initialize the indicators for calculating final objectives
-  	int inertia_ctr         = 0   ; // counter for decision inertia ; accumulating over all samples 
+	// opt 2 - initialize the indicators for calculating final objectives  	
   	double acc_benefit      = 0.0 ; // accumulated benefit over all samples 
   	double acc_reliability  = 0.0 ; // accumulated reliability over all samples 
   	double acc_prob_inertia = 0.0 ; // accumulated probability of maintaining inertia over all samples 
   	vector<double> acc_lake_state(no_years, 0.0) ; // time-series of lake state accumulated over all samples 
 	
 	// opt 3 - simulation over all samples 
-	for (int sample = 0; sample < samples; sample++){      
+	for (int sample = 0; sample < samples; sample++){
+	  int inertia_ctr         = 0   ; // counter for decision inertia ; accumulating over all samples       
       vector<double> nat_flow(no_years, 0.0) ; // initialize natural flow 
       
 	  int index = linetouse.at(sample);	  
@@ -104,7 +104,7 @@ void Stoch_Lake_Problem(double * vars, double * objs, double * consts)
     }
   
 	double dum_max_ele = *max_element(acc_lake_state.begin(), acc_lake_state.end()) ; // get maximum P value
-	
+
 	// compute the final objectives 
 	objs[0] =  dum_max_ele/samples   ;    // minimize the maximum Phosphorous concentration 
 	objs[1] = -acc_benefit/samples   ;    // maximize the gain from pollution loads
@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
 	Read_Nat_Flow("SOWs_Type6.txt", nat_pol_flow);
 
 	// opt 1 - create Borg problem
-	BORG_Problem problem = BORG_Problem_create(nvars, nobjs, 0, Stoch_Lake_Problem);
+	BORG_Problem problem = BORG_Problem_create(nvars, nobjs, nconsts, Stoch_Lake_Problem);
 
 	// opt 2 - Set upper and lower bounds 
 	for (int i=0; i<nvars; i++) {

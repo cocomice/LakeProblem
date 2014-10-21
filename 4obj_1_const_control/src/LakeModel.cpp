@@ -91,7 +91,7 @@ void Lake:: Lake_Prober(vector<double> & output)
 {
   const int no_ele = lake_state.size() ;
   
-  if (output.size()!=no_ele){
+  if (output.size()!=(unsigned)no_ele){
     cout << "argument of 'Lake_Prober' must be " << no_ele << endl ;
   }
 
