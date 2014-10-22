@@ -14,7 +14,7 @@
 #include <algorithm>
 
 #include "./LakeModel.h"
-#include "../../../borg.h"
+#include "../../../moeaframework.h"
 
 using namespace std ;
 
@@ -150,37 +150,28 @@ void Read_Nat_Flow(string filename, vector<vector<double> > & output )
 int main(int argc, char* argv[])
 {
 	param_b  = strtod(argv[1], NULL) ;
-	param_Xo = strtod(argv[2], NULL) ;	
+	param_Xo = strtod(argv[2], NULL) ;		
 	
 	// Declare the global variables 
 	nobjs 	= 4 ;
 	nvars 	= no_years ;
 	nconsts = 1 ;
 
+	double vars[nvars];
+    double objs[nobjs];
+    double consts[nconsts];
+
 	Read_Nat_Flow("SOWs_Type6.txt", nat_pol_flow);
 
-	// opt 1 - create Borg problem
-	BORG_Problem problem = BORG_Problem_create(nvars, nobjs, nconsts, Stoch_Lake_Problem);
-
-	// opt 2 - Set upper and lower bounds 
-	for (int i=0; i<nvars; i++) {
-		BORG_Problem_set_bounds(problem, i, 0.0, 0.1);
-	}
-
-	// opt 3 - Set epsilon value 	
-	BORG_Problem_set_epsilon(problem, 0, 0.01);
-	BORG_Problem_set_epsilon(problem, 1, 0.01);
-	BORG_Problem_set_epsilon(problem, 2, 0.0001);
-	BORG_Problem_set_epsilon(problem, 3, 0.0001);	
-
-	// opt 4 - Run optimization
-	BORG_Archive result = BORG_Algorithm_run(problem, 10000);
-
-	// opt 5 - Print out results 
-	BORG_Archive_print(result, stdout);
-
-	BORG_Archive_destroy(result) ;
-	BORG_Problem_destroy(problem);
+	MOEA_Init(nobjs, nconsts);
+  
+    while (MOEA_Next_solution() == MOEA_SUCCESS) {
+	    MOEA_Read_doubles(nvars, vars);
+	    Stoch_Lake_Problem(vars, objs, consts);
+	    MOEA_Write(objs, consts);
+ 	 }
+  
+  	MOEA_Terminate();
 
 	return EXIT_SUCCESS;	
 }

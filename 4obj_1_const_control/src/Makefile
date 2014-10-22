@@ -3,25 +3,30 @@
 # Oct. 21, 2014 at Cornell University
 
 
-CC  = gcc  
-CC2 = g++  
+CC 	 = gcc
+CC2  = g++
 
-main: LakeProblem.exe
+main: LakeProblem4obj_control BorgExec
 
-LakeProblem.exe: mt19937ar.o borg.o LakeModel.o LakeProblem_4obj_1_const_control.cpp
-	$(CC2) -Wall -o LakeProblem.exe mt19937ar.o borg.o LakeModel.o LakeProblem_4obj_1_const_control.cpp
-	rm *.o
-	
-mt19937ar.o: ../../../mt19937ar.c ../../../mt19937ar.h
-	$(CC) -Wall -c ../../../mt19937ar.c -o mt19937ar.o
-	
-borg.o : ../../../borg.c  ../../../borg.h
-	$(CC) -Wall -c ../../../borg.c -o borg.o 
-	
-LakeModel.o: LakeModel.cpp LakeModel.h
-	$(CC2) -Wall -o LakeModel.o -c LakeModel.cpp	
+LakeProblem4obj_control : LakeModel.o moeaframework.o LakeProblem_4obj_1_const_control.cpp
+	$(CC2) -Wall -o LakeProblem4obj_control.exe LakeModel.o moeaframework.o LakeProblem_4obj_1_const_control.cpp
+	rm *.o 
 
-clean :
-	rm LakeProblem.exe
+BorgExec : ../../../frontend.c	mt19937ar.o borg.o
+	$(CC) -Wall -o BorgExec.exe ../../../frontend.c borg.o mt19937ar.o
+	rm borg.o mt19937ar.o
+
+LakeModel.o : LakeModel.cpp LakeModel.h
+	$(CC2) -Wall -o LakeModel.o -c LakeModel.cpp
+
+moeaframework.o: ../../../moeaframework.c ../../../moeaframework.h
+	$(CC) -Wall -o moeaframework.o -c ../../../moeaframework.c
 	
+borg.o : ../../../borg.c ../../../borg.h
+	$(CC) -Wall -o borg.o -c ../../../borg.c 
+
+mt19937ar.o : ../../../mt19937ar.c ../../../mt19937ar.h 
+	$(CC) -Wall -o mt19937ar.o -c ../../../mt19937ar.c 	
 	
+clean:
+	rm BorgExec LakeProblem4obj_control 	
