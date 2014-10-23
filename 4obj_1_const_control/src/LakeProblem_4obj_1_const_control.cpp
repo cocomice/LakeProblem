@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
 				BORG_Debug("Unable to open final output file\n");
 			}
 
-			BORG_Archive_print(result, stdout);
+			BORG_Archive_print(result, outputFile);
 			BORG_Archive_destroy(result);
 			fclose(outputFile) ;
 		}
