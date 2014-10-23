@@ -1,5 +1,5 @@
 /*
-* Lake Problem <another version>
+* Lake Problem <Parallel version>
 * Yu Li, October 2014
 * Cornell University
 * <yl2537@cornell.edu>
@@ -12,9 +12,12 @@
 #include <stdlib.h>
 #include <time.h>
 #include <algorithm>
+#include <mpi.h>
 
+// notice here I include the header of master-slave borg
+// instead of series borg version (borg.h)
 #include "./LakeModel.h"
-#include "../../../borg.h"
+#include "./borgms.h" 
 
 using namespace std ;
 
@@ -157,29 +160,72 @@ int main(int argc, char* argv[])
 	nvars 	= no_years ;
 	nconsts = 1 ;
 
+	// Load input data of natual polluted flow
 	Read_Nat_Flow("SOWs_Type6.txt", nat_pol_flow);
+	
+	int rank;
+	char runtime[256];
 
-	// opt 1 - create Borg problem
+	// All master-slave runs need to call startup and set the runtime
+	// limits (in hour).
+	BORG_Algorithm_ms_startup(&argc, &argv);
+	BORG_Algorithm_ms_max_time(0.5);
+	BORG_Algorithm_ms_max_evaluations(100000);
+
+	// Create Borg problem
 	BORG_Problem problem = BORG_Problem_create(nvars, nobjs, nconsts, Stoch_Lake_Problem);
 
-	// opt 2 - Set upper and lower bounds 
+	// Set upper and lower bounds 
 	for (int i=0; i<nvars; i++) {
 		BORG_Problem_set_bounds(problem, i, 0.0, 0.1);
 	}
 
-	// opt 3 - Set epsilon value 	
+	// Set epsilon value 	
 	BORG_Problem_set_epsilon(problem, 0, 0.01);
 	BORG_Problem_set_epsilon(problem, 1, 0.01);
 	BORG_Problem_set_epsilon(problem, 2, 0.0001);
 	BORG_Problem_set_epsilon(problem, 3, 0.0001);	
 
-	// opt 4 - Run optimization
-	BORG_Archive result = BORG_Algorithm_run(problem, 10000);
+	// Get the rank of this process.  The rank is used to ensure each
+	// parallel process uses a different random seed.
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+	
+	// When running experiments, we want to run the algorithm multiple
+	// times over different seeds and average the results.
+	for (int i=0; i<100; i++) { // 100 seeds to be used 
+		
+		// Save runtime dynamics to a file(for diagnostic purpose). 
+		// Only the master node will write to this file.  
+		// Note how we create separate files for each run.
+		sprintf(runtime, "runtime_%d.txt", i); 			 // assign the name for runtime output file
+		sprintf(outputFilename, "end_of_run_%d.txt", i); // assign the name for end-run output file
 
-	// opt 5 - Print out results 
-	BORG_Archive_print(result, stdout);
+		BORG_Algorithm_output_runtime(runtime);
+		BORG_Algorithm_output_frequency(500);
 
-	BORG_Archive_destroy(result) ;
+		// Seed the random number generator.
+		BORG_Random_seed(37*i*(rank+1));
+
+		// Run the master-slave Borg MOEA on the problem.
+		BORG_Archive result = BORG_Algorithm_ms_run(problem);
+
+		// Only the master process will return a non-NULL result.
+		// Print the Pareto optimal solutions to the screen.
+		if (result != NULL) {
+			FILE * outputFile = fopen(outputFilename, "w") ;
+
+			if (!outputFile) {
+				BORG_Debug("Unable to open final output file\n");
+			}
+
+			BORG_Archive_print(result, stdout);
+			BORG_Archive_destroy(result);
+			fclose(outputFile) ;
+		}
+	}
+
+	// Shutdown the parallel processes and exit.
+	BORG_Algorithm_ms_shutdown();
 	BORG_Problem_destroy(problem);
 
 	return EXIT_SUCCESS;	
