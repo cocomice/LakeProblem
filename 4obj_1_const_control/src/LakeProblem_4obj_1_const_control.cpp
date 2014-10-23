@@ -164,6 +164,7 @@ int main(int argc, char* argv[])
 	Read_Nat_Flow("SOWs_Type6.txt", nat_pol_flow);
 	
 	int rank;
+	time_t start ;
 	char runtime[256], outputFilename[256];
 
 	// All master-slave runs need to call startup and set the runtime
@@ -204,7 +205,8 @@ int main(int argc, char* argv[])
 		BORG_Algorithm_output_frequency(500);
 
 		// Seed the random number generator.
-		BORG_Random_seed(37*i*(rank+1));
+		int seed = 37*i*(rank+1);
+		BORG_Random_seed(seed);
 
 		// Run the master-slave Borg MOEA on the problem.
 		BORG_Archive result = BORG_Algorithm_ms_run(problem);
@@ -217,8 +219,23 @@ int main(int argc, char* argv[])
 			if (!outputFile) {
 				BORG_Debug("Unable to open final output file\n");
 			}
+		// print header text
+			fprintf(outputFile, "# BORG version: %s\n", BORG_VERSION);
+			fprintf(outputFile, "# Current time: %s", ctime(&start));
+			fprintf(outputFile, "# Problem: %s", argv[0]);
+			for (int i=1; i<argc; i++) {
+				fprintf(outputFile, " %s", argv[i]);
+			}
+			fprintf(outputFile, "\n");
+			fprintf(outputFile, "# Number of variables: %d\n", nvars);
+			fprintf(outputFile, "# Number of objectives: %d\n", nobjs);
+			fprintf(outputFile, "# Number of constraints: %d\n", nconsts);	
+			fprintf(outputFile, "# Seed: %d\n", seed);
 
 			BORG_Archive_print(result, outputFile);
+			fprintf(outputFile, "# \n");
+			fprintf(outputFile, "#Finished");
+			
 			BORG_Archive_destroy(result);
 			fclose(outputFile) ;
 		}
