@@ -17,7 +17,7 @@
 // notice here I include the header of master-slave borg
 // instead of series borg version (borg.h)
 #include "./LakeModel.h"
-#include "./borgms.h" 
+#include "../../../borg-ms-code/borgms.h" 
 
 using namespace std ;
 
@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
 	Read_Nat_Flow("SOWs_Type6.txt", nat_pol_flow);
 	
 	int rank;
-	char runtime[256];
+	char runtime[256], outputFilename[256];
 
 	// All master-slave runs need to call startup and set the runtime
 	// limits (in hour).
@@ -194,7 +194,7 @@ int main(int argc, char* argv[])
 	// times over different seeds and average the results.
 	for (int i=0; i<100; i++) { // 100 seeds to be used 
 		
-		// Save runtime dynamics to a file(for diagnostic purpose). 
+		// Save runtime dynamics to a file for diagnostic purpose (optional)
 		// Only the master node will write to this file.  
 		// Note how we create separate files for each run.
 		sprintf(runtime, "runtime_%d.txt", i); 			 // assign the name for runtime output file
