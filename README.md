@@ -5,11 +5,11 @@ Lake Problem based on Carpenter et al 1999.
 Intended for use with MOEAFramework and Borg MOEA. For downloading those libraries please visit: `http://borgmoea.org`;
 
 ##Branches: 
-* **master** branch: the main branch of the lake problem model, using the embedded coding approach combining the declaration of the 4-objective stochstic lake problems and the Borg algorithm within one file. 
-* **diagnostic**: branch: this version is coded independently from the Borg algorithm, which means one will get a standalone executable that runs given specfied input variables. To run the optimization requires the interconnection with series Borg in the command line. See 'To compile and run' session for more details.
+* **master**: the main branch of the lake problem model, using the embedded coding approach combining the declaration of the 4-objective stochstic lake problems and the Borg algorithm within one file. 
+* **diagnostic**: this version is intended for comparative study and hence coded independently from the Borg algorithm, which means one will get a standalone executable that runs given specfied input variables. To run the optimization requires the interconnection with series Borg in the command line. See 'To compile and run' session for more details.
 * **lakeproblem_par**: the parallel version using embedded form of coding. To compile this version requires the Borg Master-Slave version. 
 
-##Note: 
+**Note**: 
 Three branches take the same form of folder structure (see 'Contents'), and the differences between three branches are only within the 4-objective control problem. The single objective problem is same across all three branches. 
 
 ##Contents:
@@ -34,3 +34,5 @@ To compile and run the program requires the Borg source codes, which can be obta
 `./Borg_executable.exe -v 100 -o 4 -c 1 -l 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 -u 0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1 -e 0.01,0.01,0.0001,0.0001 -n 10000 -f outputfile.set -- ./lake_executable.exe .42 0.0`
 
 * for embedded form, simply use `./name_of_executable.exe .42 0.0`. You can append `> output.txt` command to pipe out your output into a file named `output.txt` ;
+* 
+**Note**: please check carefully the path when including the `borg.h` or `moeaframework.h` library; For any question, please send me the email: yli@elet.polimi.it ;
