@@ -134,8 +134,8 @@ void Read_Nat_Flow(string filename, vector<vector<double> > & output )
 	       {
 	           char *pEnd;
 	           char *testbuffer = new char [maxSize];
-	             for (int i=0; i <maxSize; i++)
-		              testbuffer[i] = buffer[i];
+               for (int i=0; i <maxSize; i++)
+	               testbuffer[i] = buffer[i];
   
 	           for (int cols =0;cols<no_years;cols++) // use nDays not nvars, since now they are different
 		         {
