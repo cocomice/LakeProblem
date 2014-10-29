@@ -33,6 +33,6 @@ To compile and run the program requires the Borg source codes, which can be obta
 
 `./Borg_executable.exe -v 100 -o 4 -c 1 -l 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 -u 0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1,0.1 -e 0.01,0.01,0.0001,0.0001 -n 10000 -f outputfile.set -- ./lake_executable.exe .42 0.0`
 
-* for embedded form, simply use `./name_of_executable.exe .42 0.0`. You can append `> output.txt` command to pipe out your output into a file named `output.txt` ;
-* 
+* for embedded form, simply use `./name_of_executable.exe .42 0.0`. You can append `> output.txt` command to pipe out your output into a file named `output.txt`.The configuration of Borg parameters has to be done within the `main` function ;
+ 
 **Note**: please check carefully the path when including the `borg.h` or `moeaframework.h` library; For any question, please send me the email: yli@elet.polimi.it ;
