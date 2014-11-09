@@ -7,6 +7,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <string>
 #include <vector>
 #include <stdio.h>
 #include <stdlib.h>
@@ -149,6 +151,58 @@ void Read_Nat_Flow(string filename, vector<vector<double> > & output )
   fclose(myfile);
 }
 
+vector< vector<double> > File_Read_Matrix( string filename )
+{
+    const string& delim = " \t" ;
+ 
+    vector< vector<double> > matrix ;
+ 
+    ifstream fin (filename.c_str()) ;
+ 
+    string line;
+    string strnum;
+ 
+    // clear first
+    matrix.clear();
+ 
+    // parse line by line
+    if (!fin.is_open()){
+        cout << "file could not be opened !" <<endl;
+    }
+ 
+    while (getline(fin, line))
+    {
+    	if(line.at(0)=='#') continue ;
+        matrix.push_back(vector<double>());
+ 
+        for (string:: const_iterator i = line.begin(); i != line.end(); ++ i)
+        {
+            // If it is not a delim, then append it to strnum
+            if (delim.find(*i) == string::npos)
+            {
+                strnum += *i;
+                if( i+1 != line.end() ) continue ;
+            }
+ 
+            // if strnum is still empty, it means the previous char is also a
+            // delim (several delims appear together). Ignore this char.
+            if (strnum.empty()) continue ;
+ 
+            // If we reach here, we got a number. Convert it to double.
+            double number;
+ 
+            istringstream(strnum) >> number;
+            matrix.back().push_back(number);
+ 
+            strnum.clear();
+        }
+    }
+ 
+    fin.close() ;
+ 
+    return matrix ;
+}
+
 // Connect to Borg with defined parameter values 
 int main(int argc, char* argv[])
 {
@@ -163,15 +217,16 @@ int main(int argc, char* argv[])
 	// Load input data of natual polluted flow
 	Read_Nat_Flow("SOWs_Type6.txt", nat_pol_flow);
 	
+	// Load sampled parameters 
+	vector<vector<double> > param_val = File_Read_Matrix("BORG_Param_Values.txt") ;
+
 	int rank;
 	time_t start ;
-	char runtime[256], outputFilename[256];
 
 	// All master-slave runs need to call startup and set the runtime
 	// limits (in hour).
 	BORG_Algorithm_ms_startup(&argc, &argv);
 	BORG_Algorithm_ms_max_time(0.5);
-	BORG_Algorithm_ms_max_evaluations(100000);
 
 	// Create Borg problem
 	BORG_Problem problem = BORG_Problem_create(nvars, nobjs, nconsts, Stoch_Lake_Problem);
@@ -193,51 +248,56 @@ int main(int argc, char* argv[])
 	
 	// When running experiments, we want to run the algorithm multiple
 	// times over different seeds and average the results.
-	for (int i=0; i<100; i++) { // 100 seeds to be used 
+	double param_vec[21] ;
+	unsigned int no_rows = param_val.size() ;
+	char outputFilename[256] ;
+
+	for(int j=0;j<no_rows;j++){
+		for(int k=0;k<21;k++) param_vec[k] = param_val[j][k];		
 		
-		// Save runtime dynamics to a file for diagnostic purpose (optional)
-		// Only the master node will write to this file.  
-		// Note how we create separate files for each run.
-		sprintf(runtime, "runtime_%d.txt", i); 			 // assign the name for runtime output file
-		sprintf(outputFilename, "end_of_run_%d.txt", i); // assign the name for end-run output file
+		for (int i=0; i<50; i++) { // 100 seeds to be used 
 
-		BORG_Algorithm_output_runtime(runtime);
-		BORG_Algorithm_output_frequency(500);
 
-		// Seed the random number generator.
-		int seed = 37*i*(rank+1);
-		BORG_Random_seed(seed);
+			// Save runtime dynamics to a file for diagnostic purpose (optional)
+			// Only the master node will write to this file.  
+			// Note how we create separate files for each run.
+			sprintf(outputFilename, "./results_SA/end_of_run_%d_sample_%d.txt", i, j); // assign the name for end-run output file
 
-		// Run the master-slave Borg MOEA on the problem.
-		BORG_Archive result = BORG_Algorithm_ms_run(problem);
+			// Seed the random number generator.
+			int seed = 37*i*(rank+1);
+			BORG_Random_seed(seed);
 
-		// Only the master process will return a non-NULL result.
-		// Print the Pareto optimal solutions to the screen.
-		if (result != NULL) {
-			FILE * outputFile = fopen(outputFilename, "w") ;
+			// Run the master-slave Borg MOEA on the problem.
+			BORG_Archive result = BORG_Algorithm_ms_SA(problem, param_vec);
 
-			if (!outputFile) {
-				BORG_Debug("Unable to open final output file\n");
+			// Only the master process will return a non-NULL result.
+			// Print the Pareto optimal solutions to the screen.
+			if (result != NULL) {
+				FILE * outputFile = fopen(outputFilename, "w") ;
+
+				if (!outputFile) {
+					BORG_Debug("Unable to open final output file\n");
+				}
+			// print header text
+				fprintf(outputFile, "# BORG version: %s\n", BORG_VERSION);
+				fprintf(outputFile, "# Current time: %s", ctime(&start));
+				fprintf(outputFile, "# Problem: %s", argv[0]);
+				for (int i=1; i<argc; i++) {
+					fprintf(outputFile, " %s", argv[i]);
+				}
+				fprintf(outputFile, "\n");
+				fprintf(outputFile, "# Number of variables: %d\n", nvars);
+				fprintf(outputFile, "# Number of objectives: %d\n", nobjs);
+				fprintf(outputFile, "# Number of constraints: %d\n", nconsts);	
+				fprintf(outputFile, "# Seed: %d\n", seed);
+
+				BORG_Archive_print(result, outputFile);
+				fprintf(outputFile, "# \n");
+				fprintf(outputFile, "#Finished");
+				
+				BORG_Archive_destroy(result);
+				fclose(outputFile) ;
 			}
-		// print header text
-			fprintf(outputFile, "# BORG version: %s\n", BORG_VERSION);
-			fprintf(outputFile, "# Current time: %s", ctime(&start));
-			fprintf(outputFile, "# Problem: %s", argv[0]);
-			for (int i=1; i<argc; i++) {
-				fprintf(outputFile, " %s", argv[i]);
-			}
-			fprintf(outputFile, "\n");
-			fprintf(outputFile, "# Number of variables: %d\n", nvars);
-			fprintf(outputFile, "# Number of objectives: %d\n", nobjs);
-			fprintf(outputFile, "# Number of constraints: %d\n", nconsts);	
-			fprintf(outputFile, "# Seed: %d\n", seed);
-
-			BORG_Archive_print(result, outputFile);
-			fprintf(outputFile, "# \n");
-			fprintf(outputFile, "#Finished");
-			
-			BORG_Archive_destroy(result);
-			fclose(outputFile) ;
 		}
 	}
 
