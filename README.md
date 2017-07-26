@@ -4,7 +4,7 @@ Lake Problem based on Carpenter et al 1999.
 
 Intended for use with MOEAFramework and Borg MOEA. For downloading those libraries please visit: `http://borgmoea.org`;
 
-##Branches: 
+## Branches: 
 * **master**: the main branch of the lake problem model, using the embedded coding approach combining the declaration of the 4-objective stochstic lake problems and the Borg algorithm within one file. 
 * **diagnostic**: this version is intended for comparative study and hence coded independently from the Borg algorithm, which means one will get a standalone executable that runs given specfied input variables. To run the optimization requires the interconnection with series Borg in the command line. See 'To compile and run' session for more details.
 * **lakeproblem_par**: the parallel version using embedded form of coding. To compile this version requires the Borg Master-Slave version. 
@@ -12,19 +12,19 @@ Intended for use with MOEAFramework and Borg MOEA. For downloading those librari
 **Note**: 
 Three branches take the same form of folder structure (see 'Contents'), and the differences between three branches are only within the 4-objective control problem. The single objective problem is same across all three branches. 
 
-##Contents:
-###Single objective lake problem
+## Contents:
+### Single objective lake problem
 * `LakeProblem_1obj_control.cpp`: C++ source code for the 1 objective formulation.
 * `LakeProblem.h`: header file for declaration of `Lake` class.
 * `LakeProblem.cpp`: source code for `Lake` class.
 
-###Four objective one control problem formulation
+### Four objective one control problem formulation
 * `LakeProblem_4obj_1_const_control.cpp`: C++ source code for the 4 objectives formulation.
 * `LakeProblem.h`: header file for declaration of `Lake` class.
 * `LakeProblem.cpp`: source code for `Lake` class. 
 * `Makefile`: makefile for compilation. 
 
-##To compile and run:
+## To compile and run:
 To compile and run the program requires the Borg source codes, which can be obtained from here: `http://borgmoea.org`;
 
 * Type the following command `make -f Makefile` to compile the model; for single objective formulation, type `g++ -o lake_executable LakeProblem_1obj_control.cpp LakeProblem.cpp` ;
